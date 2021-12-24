@@ -7,14 +7,13 @@
 
 using namespace std;
 
-// Add edge
-string difference(string cs1, string cs2) {
+int difference(string cs1, string cs2) {
     string d = "";
     int i = 0;
     int k = 0;
     for (; i < cs1.length() && k < cs2.length();) {
         if (cs1.length() <= cs2.length()) {
-            if (cs1[i] != cs2[k] && k <= i) {
+            if (cs1[i] != cs2[k] && k <= i) { //diffrence of cs2 from cs1
                 d += cs2[i];
 
             } else if ((cs1[i] != cs2[k] && i <= k))
@@ -35,59 +34,17 @@ string difference(string cs1, string cs2) {
         }
 
     }
-    if (d.length() == 1)
-        return d;
+    if(d.length()==1)
+        return cs2.find(d);
     else
-        return string();
+        return -1;
 }
 
-struct Vertex {
-    bool known;
-    int dist;
-    string path;
-    int node;
-
-    Vertex() : known(false), dist(2 ^ 31 - 1) {}
-};
-
-
-// Print the graph
-void printGraph(vector<int> adj[], int V,  unordered_map<int, string> &w) {
-    for (int d = 0; d < V; ++d) {
-        cout << "\n Vertex "
-             << w[d] << ":";
-        for (auto x : adj[d])
-            cout << "-> " << w[x];
-        printf("\n");
-    }
-}
-void Graph(Vertex s,vector<int> words,int v_num)
-{
-    queue<Vertex> q
-            ( (queue<Vertex>::container_type( v_num)) );
-    Vertex v, w;
-    q.push(s);
-    s.dist = 0;
-
-    while(! q.empty( )) {
-        v = q.front( );
-        q.pop();
-        v.known = true;
-        for (int i = 0; i <words[v.node]; ++i) {
-            if (w.dist == 2 ^31 - 1) {
-                w.dist = v.dist + 1;
-                w.path = v.node;
-                q.push(w);
-            }
-        }
-
-
-    }
-}
 
 int main() {
-    unordered_map<string, int> dictionary;
+    unordered_map<string,int> dictionary;
     unordered_map<int, string> vertices;
+    vector<string>adjWords;
 
     ifstream file("words.txt");
     string words, word1, word2, temp;
@@ -98,8 +55,10 @@ int main() {
     int v = 0;
     while (file >> words) {
         dictionary[words] = wordC;
+        vertices[dictionary[words]]=words;
         wordC++;
     }
+    Graph g(dictionary.size());
     file.close();
     file.open("words.txt");
 
@@ -112,33 +71,33 @@ int main() {
             dictionary.find(word2) == dictionary.end()) {   //Check if the words in the dictionary
             cout << "One of the words is not in the dictionary ,please enter new words!! " << endl;
         } else {
-            while (file >> words) {
+            file.close();
+            file.open("words.txt");
+            while (file >> words) { //gerek yokkk
                 if (abs(int(word1.length()) - int(words.length())) <= abs(int(word1.length()) -
                                                                           int(word2.length()))) { //uzunluk farkı aranan kelimeler arasında farka eşit olan kelimeleri al
                     wordSet.insert(words);
-                    vertices[v] = words;
-                    v++;
 
                 }
 
             }
-            vector<int> adjecentEdges[wordSet.size()];
             string tmp1, tmp2;
             for (it = wordSet.begin(); it != wordSet.end(); it++) {
                 tmp1 = *it;
                 for (it2 = wordSet.begin(); it2 != wordSet.end(); it2++) {
                     tmp2 = *it2;
-                    if (tmp1 != tmp2 && difference(tmp1, tmp2) != "") {
-                        adjecentEdges[ dictionary[tmp1]].push_back(dictionary[tmp2]);
+                    if (tmp1 != tmp2 && difference(tmp1, tmp2)!=-1 ) {
+                     // cout<<tmp1+"-"+ tmp2 + to_string(difference(tmp1, tmp2))<<endl;
+                        g.addEdge(dictionary[tmp1],dictionary[tmp2]);
                     }
 
                 }
 
-                Vertex s;
-                s.node= dictionary[word1];
-                Graph(s,adjecentEdges,wordSet.size());
             }
-            printGraph(adjecentEdges, wordSet.size(), vertices);
+            cout << "Following is Breadth First Traversal "
+                 << "(starting from vertex " + vertices[dictionary[word1]]+ "\n"; //aranan kelime ile de karşılaştırma yap!!!
+            g.BFS(dictionary[word1],vertices,dictionary[word2]);
+
 
         }
 
